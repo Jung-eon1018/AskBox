@@ -381,10 +381,103 @@ button:disabled {
   line-height: 1.5;
 }
 
-.chat-message p {
+.chat-message > p {
   margin: 0;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+/* ───────── AI 답변 마크다운 ───────── */
+
+.markdown {
+  word-break: break-word;
+}
+
+.markdown > :first-child {
+  margin-top: 0;
+}
+
+.markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown p,
+.markdown ul,
+.markdown ol,
+.markdown blockquote,
+.markdown pre,
+.markdown table {
+  margin: 0 0 8px;
+}
+
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4 {
+  margin: 14px 0 6px;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.markdown ul,
+.markdown ol {
+  padding-left: 20px;
+}
+
+.markdown li + li {
+  margin-top: 2px;
+}
+
+.markdown hr {
+  margin: 12px 0;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+.markdown blockquote {
+  padding-left: 10px;
+  border-left: 3px solid var(--border);
+  color: var(--text-muted);
+}
+
+.markdown code {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.06);
+  font-size: 0.9em;
+}
+
+.markdown pre {
+  padding: 10px;
+  border-radius: 8px;
+  background: #1f2328;
+  color: #f0f3f6;
+  overflow-x: auto;
+}
+
+.markdown pre code {
+  padding: 0;
+  background: none;
+}
+
+.markdown table {
+  display: block;
+  border-collapse: collapse;
+  overflow-x: auto;
+  font-size: 13px;
+}
+
+.markdown th,
+.markdown td {
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+}
+
+/* 긴 블록 수식은 말풍선 안에서 가로 스크롤 */
+.markdown .katex-display {
+  margin: 8px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .chat-user {
@@ -393,7 +486,8 @@ button:disabled {
 }
 
 .chat-assistant {
-  align-self: flex-start;
+  align-self: stretch;
+  max-width: 100%; /* 수식·표가 넓어서 답변은 패널 폭을 다 쓴다 */
   background: var(--surface-muted);
 }
 

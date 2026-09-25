@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { askQuestion } from '../api/api.js';
+import Markdown from './Markdown.jsx';
 
-export default function ChatPanel({ doc, preview, onClearPreview }) {
-  const [messages, setMessages] = useState([]); // { role: 'user' | 'assistant', text, imageUrl?, pageNumber?, error? }
+// messages: { role: 'user' | 'assistant', text, imageUrl?, imageBlob?, pageNumber?, error? }[]
+// 대화 기록은 App이 문서별로 보관하므로 여기서는 항상 함수형 업데이트(onMessagesChange(prev => ...))만 쓴다.
+export default function ChatPanel({ doc, messages, onMessagesChange: setMessages, preview, onClearPreview }) {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const listRef = useRef(null);
@@ -78,7 +80,7 @@ export default function ChatPanel({ doc, preview, onClearPreview }) {
         {messages.map((m, i) => (
           <div key={i} className={`chat-message chat-${m.role}${m.error ? ' is-error' : ''}`}>
             {m.imageUrl && <img className="chat-message-image" src={m.imageUrl} alt={`p.${m.pageNumber} 선택 영역`} />}
-            <p>{m.text}</p>
+            {m.role === 'assistant' && !m.error ? <Markdown>{m.text}</Markdown> : <p>{m.text}</p>}
           </div>
         ))}
         {sending && <div className="chat-message chat-assistant is-pending"><p>생각하는 중…</p></div>}

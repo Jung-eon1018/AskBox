@@ -4,7 +4,7 @@ import Toolbar from '../components/Toolbar.jsx';
 import ChatPanel from '../components/ChatPanel.jsx';
 import { cropCanvas } from '../utils/crop.js';
 
-export default function ViewerPage({ doc, onBack }) {
+export default function ViewerPage({ doc, messages, onMessagesChange, onBack }) {
   const [selectMode, setSelectMode] = useState(false);
   // { pageNumber, rect, canvas } — rect는 화면(CSS px) 기준, 페이지 왼쪽 위가 원점
   const [selection, setSelection] = useState(null);
@@ -51,7 +51,13 @@ export default function ViewerPage({ doc, onBack }) {
         />
       </section>
 
-      <ChatPanel doc={doc} preview={preview} onClearPreview={() => setPreview(null)} />
+      <ChatPanel
+        doc={doc}
+        messages={messages}
+        onMessagesChange={onMessagesChange}
+        preview={preview}
+        onClearPreview={() => setPreview(null)}
+      />
     </div>
   );
 }
