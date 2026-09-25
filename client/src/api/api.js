@@ -9,6 +9,7 @@ export async function askQuestion({ documentName, pageNumber, image, question, h
   if (image) form.append('image', image, 'selection.png');
 
   const res = await fetch('/api/ask', { method: 'POST', body: form });
-  if (!res.ok) throw new Error(`서버 응답 오류 (${res.status})`);
-  return res.json(); // { answer }
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error || `서버에 연결할 수 없어요 (${res.status})`);
+  return body; // { answer }
 }

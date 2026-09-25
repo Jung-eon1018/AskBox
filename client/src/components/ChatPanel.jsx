@@ -21,9 +21,14 @@ export default function ChatPanel({ doc, preview, onClearPreview }) {
       text: question,
       // 미리보기 URL은 곧 해제되므로 대화 기록용 URL을 따로 만든다
       imageUrl: preview ? URL.createObjectURL(preview.blob) : null,
+      imageBlob: preview?.blob,
       pageNumber: preview?.pageNumber,
     };
     const history = messages.filter((m) => !m.error).map(({ role, text }) => ({ role, text }));
+    // 새로 선택하지 않은 후속 질문은 직전에 선택한 영역을 계속 보고 답하게 한다
+    const lastImageMessage = messages.findLast((m) => m.imageBlob);
+    const image = preview?.blob ?? lastImageMessage?.imageBlob;
+    const pageNumber = preview?.pageNumber ?? lastImageMessage?.pageNumber;
 
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
@@ -33,8 +38,8 @@ export default function ChatPanel({ doc, preview, onClearPreview }) {
     try {
       const { answer } = await askQuestion({
         documentName: doc.name,
-        pageNumber: preview?.pageNumber,
-        image: preview?.blob,
+        pageNumber,
+        image,
         question,
         history,
       });
