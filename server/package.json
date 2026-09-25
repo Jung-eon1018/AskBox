@@ -8,8 +8,8 @@
     "start": "node --env-file-if-exists=.env index.js"
   },
   "dependencies": {
-    "@google/genai": "^2.24.0",
     "express": "^5.2.1",
-    "multer": "^2.4.0"
+    "multer": "^2.4.0",
+    "openai": "^7.23.0"
   }
 }
