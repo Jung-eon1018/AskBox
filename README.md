@@ -1,27 +1,62 @@
 # AskBox
 
-**AI-native document learning workspace** — 문서를 보다가 궁금한 부분을 마우스로 네모 선택하고, 바로 AI에게 질문하세요.
+> **Select what you don't understand. Ask. Keep reading.**
 
-> 캡처 → 챗봇 열기 → 업로드 → 맥락 설명 → 질문
-> ⟶ **파일 열기 → 영역 선택 → 질문**
+AskBox는 문서를 읽다가 이해가 막히는 순간,
+읽던 흐름을 벗어나지 않고 바로 AI에게 질문할 수 있도록 만든
+**AI document learning workspace**입니다.
 
-## 핵심 흐름
+기존에는 강의자료나 논문을 읽다가 궁금한 부분이 생기면
 
-1. Library에서 문서(PDF / JPG / PNG)를 연다.
-2. 텍스트, 수식, 그림, 표 등 궁금한 영역을 네모로 선택한다.
-3. 질문을 입력하면 AI가 **선택 영역 + 현재 페이지 + 문서 전체 맥락 + 이전 대화**를 바탕으로 답한다.
+**캡처 → 챗봇 열기 → 이미지 업로드 → 맥락 설명 → 질문**
 
-## 구조
+과정을 반복해야 했습니다.
 
+AskBox는 이 과정을
+
+**Read → Select → Ask → Understand → Keep reading**
+
+으로 단순화합니다.
+
+---
+
+## Why AskBox?
+
+사용자가 직접 문서를 읽고 이해하는 과정에서,
+**이해가 끊기는 바로 그 순간의 마찰을 줄이는 것**에 집중합니다.
+
+그래서 자동 요약, 퀴즈 생성, 플래시카드 같은 부가 기능보다
+
+> **문서를 읽고 → 궁금한 영역을 선택하고 → 바로 질문하는 경험**
+
+자체를 핵심으로 설계했습니다.
+
+---
+
+## Core Interaction
+
+문서에서 텍스트만 선택할 필요가 없습니다.
+
+사용자는 캡처 도구처럼 궁금한 영역을 자유롭게 네모로 선택할 수 있습니다.
+
+- Text
+- Formula
+- Figure
+- Table
+- Code
+- Image
+
+선택한 영역은 이미지로 crop되어 AI에 전달되기 때문에,
+문서 안의 어떤 형태의 콘텐츠든 질문 대상으로 사용할 수 있습니다.
+
+```text
+Open Document
+      ↓
+Select Any Region
+      ↓
+Ask a Question
+      ↓
+Multimodal AI
+      ↓
+Keep Reading
 ```
-client/   React + PDF.js — Library, Document Viewer, Selection Overlay, AI Panel
-server/   Node + Express — 업로드, 질문 처리, LLM 호출 (API 키는 서버에만 보관)
-```
-
-## 로드맵
-
-- [ ] Viewer — PDF/이미지를 canvas에 렌더링
-- [ ] Selection — 드래그로 영역 선택
-- [ ] Crop — 선택 영역을 PNG로 잘라 미리보기
-- [ ] AI — 선택 이미지 + 질문 → multimodal LLM 답변
-- [ ] Document Context — 문서 인덱싱(RAG)으로 전체 맥락 반영
