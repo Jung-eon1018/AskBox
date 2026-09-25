@@ -5,7 +5,11 @@ import { askAI } from '../services/ai.js';
 import { findDoc } from '../services/documents.js';
 import { appendMessages, imageMimeType, imagePath, loadChat, saveImage } from '../services/chats.js';
 
-const MAX_HISTORY = 20; // 너무 긴 대화는 최근 것만 보낸다
+// 크레딧 절약: 이전 대화는 최근 몇 개만, 메시지마다 앞부분만 보낸다
+const MAX_HISTORY = Number(process.env.MAX_HISTORY_MESSAGES) || 6;
+const MAX_HISTORY_CHARS = Number(process.env.MAX_HISTORY_CHARS) || 800;
+
+const clip = (text) => (text.length > MAX_HISTORY_CHARS ? `${text.slice(0, MAX_HISTORY_CHARS)}…(생략)` : text);
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -40,7 +44,7 @@ router.post('/', upload.single('image'), async (req, res) => {
 
     const answer = await askAI({
       question,
-      history: chat.slice(-MAX_HISTORY).map(({ role, text }) => ({ role, text })),
+      history: chat.slice(-MAX_HISTORY).map(({ role, text }) => ({ role, text: clip(text) })),
       image,
       documentName: doc.name,
       pageNumber,

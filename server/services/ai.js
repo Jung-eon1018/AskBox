@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 
-const MODEL = process.env.GATEWAY_MODEL || "gpt-6-astra";
+const MODEL = process.env.GATEWAY_MODEL || "gpt-5.6-luna";
 
 const BASE_URL = "https://factchat-cloud.mindlogic.ai/v1/gateway";
 
