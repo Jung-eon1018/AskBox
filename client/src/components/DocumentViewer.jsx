@@ -1,22 +1,95 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import SelectionOverlay from './SelectionOverlay.jsx';
+import { documentFileUrl } from '../api/api.js';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
 const MAX_PAGE_WIDTH = 900; // 화면에 보이는 페이지 최대 폭 (CSS px)
 const PIXEL_RATIO = Math.max(2, window.devicePixelRatio || 1); // crop 선명도를 위해 최소 2배로 렌더링
 
+// ───────── 읽던 위치 기억 (문서별, 이 브라우저에만 저장) ─────────
+// { page: 몇 번째 페이지, offset: 그 페이지 안에서 얼마나 내려왔는지(0~1) }
+// 창 크기가 달라져 페이지 높이가 바뀌어도 같은 위치로 돌아가도록 픽셀 대신 비율로 저장한다.
+const positionKey = (docId) => `askbox:position:${docId}`;
+
+function loadPosition(docId) {
+  try {
+    return JSON.parse(localStorage.getItem(positionKey(docId)));
+  } catch {
+    return null;
+  }
+}
+
+function savePosition(docId, position) {
+  try {
+    localStorage.setItem(positionKey(docId), JSON.stringify(position));
+  } catch {
+    // 저장소를 못 쓰는 환경(시크릿 모드 등)에서는 기억하지 않는다
+  }
+}
+
+function pageTop(container, page) {
+  return page.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop;
+}
+
 export default function DocumentViewer({ doc, selectMode, selection, onSelect }) {
   const containerRef = useRef(null);
+  const restoredRef = useRef(false);
+  const saveTimerRef = useRef(null);
   const [pageWidth, setPageWidth] = useState(null);
+  const [file, setFile] = useState(null);
+  const [error, setError] = useState(null);
 
   // 페이지 폭은 처음 한 번만 정한다. 폭이 바뀌면 이미 그린 선택 좌표가 어긋나기 때문.
   useEffect(() => {
     const available = containerRef.current.clientWidth - 48;
     setPageWidth(Math.min(MAX_PAGE_WIDTH, available));
   }, []);
+
+  // 서버에 저장된 원본 파일을 받아온다
+  useEffect(() => {
+    let cancelled = false;
+    fetch(documentFileUrl(doc.id))
+      .then((res) => {
+        if (!res.ok) throw new Error(`파일을 불러오지 못했어요 (${res.status})`);
+        return res.blob();
+      })
+      .then((blob) => !cancelled && setFile(blob))
+      .catch((e) => !cancelled && setError(e));
+    return () => {
+      cancelled = true;
+    };
+  }, [doc.id]);
+
+  useEffect(() => () => clearTimeout(saveTimerRef.current), []);
+
+  // 페이지 배치가 끝나면 마지막으로 읽던 위치로 이동
+  const handleLayoutReady = useCallback(() => {
+    const container = containerRef.current;
+    const position = loadPosition(doc.id);
+    const page = position && container.querySelectorAll('.document-page')[position.page - 1];
+    if (page) container.scrollTop = pageTop(container, page) + position.offset * page.offsetHeight;
+    restoredRef.current = true;
+  }, [doc.id]);
+
+  // 스크롤이 멈추면 화면 맨 위에 걸친 페이지와 그 안의 위치를 저장
+  function handleScroll() {
+    if (!restoredRef.current) return;
+    clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      const container = containerRef.current;
+      const pages = container.querySelectorAll('.document-page');
+      let index = 0;
+      pages.forEach((p, i) => {
+        if (pageTop(container, p) <= container.scrollTop + 1) index = i;
+      });
+      const page = pages[index];
+      const offset = (container.scrollTop - pageTop(container, page)) / page.offsetHeight;
+      savePosition(doc.id, { page: index + 1, offset: Math.min(Math.max(offset, 0), 1) });
+    }, 150);
+  }
 
   const pageProps = (pageNumber) => ({
     pageNumber,
@@ -26,18 +99,21 @@ export default function DocumentViewer({ doc, selectMode, selection, onSelect })
   });
 
   return (
-    <div ref={containerRef} className={`document-scroll${selectMode ? ' is-selecting' : ''}`}>
+    <div ref={containerRef} className={`document-scroll${selectMode ? ' is-selecting' : ''}`} onScroll={handleScroll}>
+      {error && <p className="document-message">{error.message}</p>}
+      {!error && !file && <p className="document-message">불러오는 중…</p>}
       {pageWidth &&
+        file &&
         (doc.kind === 'pdf' ? (
-          <PdfDocument file={doc.file} width={pageWidth} pageProps={pageProps} />
+          <PdfDocument file={file} width={pageWidth} pageProps={pageProps} onLayoutReady={handleLayoutReady} />
         ) : (
-          <ImagePage file={doc.file} width={pageWidth} {...pageProps(1)} />
+          <ImagePage file={file} width={pageWidth} onLayoutReady={handleLayoutReady} {...pageProps(1)} />
         ))}
     </div>
   );
 }
 
-function PdfDocument({ file, width, pageProps }) {
+function PdfDocument({ file, width, pageProps, onLayoutReady }) {
   const [pdf, setPdf] = useState(null);
   const [pageSizes, setPageSizes] = useState([]);
   const [error, setError] = useState(null);
@@ -72,6 +148,11 @@ function PdfDocument({ file, width, pageProps }) {
       loadingTask?.destroy();
     };
   }, [file]);
+
+  // 모든 페이지 자리가 잡힌 뒤(높이 확정) 알린다 → 읽던 위치 복원
+  useEffect(() => {
+    if (pdf) onLayoutReady();
+  }, [pdf, onLayoutReady]);
 
   if (error) return <p className="document-message">PDF를 열 수 없어요: {error.message}</p>;
   if (!pdf) return <p className="document-message">불러오는 중…</p>;
@@ -138,9 +219,13 @@ function PdfPage({ pdf, width, height, pageNumber, selectMode, rect, onSelect })
 }
 
 // 이미지도 canvas에 그려서 PDF와 같은 선택/crop 로직을 쓴다.
-function ImagePage({ file, width, pageNumber, selectMode, rect, onSelect }) {
+function ImagePage({ file, width, pageNumber, selectMode, rect, onSelect, onLayoutReady }) {
   const canvasRef = useRef(null);
   const [size, setSize] = useState(null); // 화면에 보이는 크기 { w, h }
+
+  useEffect(() => {
+    if (size) onLayoutReady();
+  }, [size, onLayoutReady]);
 
   useEffect(() => {
     let cancelled = false;

@@ -4,6 +4,7 @@ dist/
 .env.*
 !.env.example
 uploads/
+server/data/
 *.log
 .DS_Store
 Thumbs.db

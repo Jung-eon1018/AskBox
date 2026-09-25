@@ -105,21 +105,73 @@ button:disabled {
   background: var(--accent-strong);
 }
 
+.library-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: #fdecea;
+  color: var(--danger);
+  font-size: 14px;
+}
+
+.library-error button {
+  flex: none;
+  padding: 4px 10px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: none;
+}
+
 .file-card {
   display: flex;
   align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 12px 14px;
   border: 1px solid transparent;
   border-radius: 8px;
   background: var(--surface-muted);
-  text-align: left;
 }
 
 .file-card:hover {
   border-color: var(--accent);
   background: var(--accent-soft);
+}
+
+.file-open {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px 14px;
+  border: none;
+  background: none;
+  text-align: left;
+}
+
+.file-delete {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  margin-right: 6px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-muted);
+  opacity: 0;
+}
+
+/* 삭제 버튼은 마우스를 올렸을 때만 보이게 (키보드 포커스 시에도 표시) */
+.file-card:hover .file-delete,
+.file-delete:focus-visible {
+  opacity: 1;
+}
+
+.file-delete:hover {
+  background: rgba(194, 65, 58, 0.1);
+  color: var(--danger);
 }
 
 .file-badge {
