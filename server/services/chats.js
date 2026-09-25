@@ -2,9 +2,10 @@ import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-// 문서별 대화 기록: server/data/chats/<문서 id>.json
-// 대화에 첨부된 선택 영역 이미지: server/data/chat-images/<이미지 id>.png
-const DATA_DIR = path.join(path.dirname(import.meta.dirname), 'data');
+import { DATA_DIR } from '../paths.js';
+
+// 문서별 대화 기록: data/chats/<문서 id>.json
+// 대화에 첨부된 선택 영역 이미지: data/chat-images/<이미지 id>.png
 const CHAT_DIR = path.join(DATA_DIR, 'chats');
 const IMAGE_DIR = path.join(DATA_DIR, 'chat-images');
 

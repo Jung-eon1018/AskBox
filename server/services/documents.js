@@ -1,10 +1,12 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-// 업로드한 파일은 server/uploads/, 목록은 server/data/documents.json 에 저장한다.
-const ROOT = path.dirname(import.meta.dirname);
-export const UPLOAD_DIR = path.join(ROOT, 'uploads');
-const DB_FILE = path.join(ROOT, 'data', 'documents.json');
+import { DATA_DIR, UPLOAD_DIR } from '../paths.js';
+
+export { UPLOAD_DIR };
+
+// 업로드한 파일은 uploads/, 목록은 data/documents.json 에 저장한다. (위치는 paths.js 참고)
+const DB_FILE = path.join(DATA_DIR, 'documents.json');
 
 await fs.mkdir(UPLOAD_DIR, { recursive: true });
 await fs.mkdir(path.dirname(DB_FILE), { recursive: true });

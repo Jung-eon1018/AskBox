@@ -9,3 +9,4 @@ server/data/
 .DS_Store
 Thumbs.db
 .vscode/
+release/

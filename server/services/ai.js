@@ -19,7 +19,7 @@ let client;
 function getClient() {
   if (!process.env.FACTCHAT_API_KEY) {
     throw new Error(
-      "FACTCHAT_API_KEY가 설정되지 않았어요. server/.env 파일을 확인하세요.",
+      `FACTCHAT_API_KEY가 설정되지 않았어요. ${process.env.ASKBOX_ENV_FILE || "server/.env"} 파일을 확인하세요.`,
     );
   }
   client ??= new OpenAI({

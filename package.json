@@ -2,10 +2,45 @@
   "name": "askbox",
   "private": true,
   "version": "0.1.0",
+  "description": "Select what you don't understand. Ask. Keep reading.",
+  "author": "Jung-Eon",
+  "main": "electron/main.mjs",
   "scripts": {
     "dev": "npm --prefix client run dev",
     "server": "npm --prefix server run dev",
     "build": "npm --prefix client run build",
-    "start": "npm run build && npm --prefix server start"
+    "start": "npm run build && npm --prefix server start",
+    "electron:dev": "electron . --dev-url=http://localhost:5173",
+    "electron": "npm run build && electron .",
+    "dist": "npm run build && npm --prefix server ci --omit=dev && electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.askbox.desktop",
+    "productName": "AskBox",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron/**/*",
+      "client/dist/**/*",
+      "server/**/*",
+      "!server/data{,/**/*}",
+      "!server/uploads{,/**/*}",
+      "!server/.env*",
+      "!**/*.log"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }

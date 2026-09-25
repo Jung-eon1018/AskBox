@@ -163,6 +163,11 @@ Answer
 - Express
 - Multer
 
+### Desktop
+
+- Electron
+- electron-builder
+
 ### AI
 
 - GPT-5.6 Luna
@@ -258,6 +263,8 @@ cd ai-workspace
 ### 2. Install Dependencies
 
 ```bash
+npm install
+
 cd client
 npm install
 
@@ -291,6 +298,33 @@ npm run server
 ```bash
 npm run dev
 ```
+
+브라우저에서 http://localhost:5173 을 엽니다.  
+Electron 창으로 보려면 두 서버를 켠 상태에서 한 터미널에서 더 실행합니다.
+
+```bash
+npm run electron:dev
+```
+
+---
+
+## Desktop App (Windows)
+
+AskBox는 Electron 데스크톱 앱으로도 실행할 수 있습니다.  
+앱을 켜면 Express 서버가 앱 안에서 함께 시작되고, 앱을 닫으면 함께 종료됩니다.
+
+```bash
+npm run electron   # client를 빌드한 뒤 Electron으로 실행
+npm run dist       # Windows 설치 파일 생성 → release/AskBox Setup <version>.exe
+```
+
+데스크톱 앱은 문서, 대화 기록, API Key를 설치 폴더가 아니라  
+사용자 데이터 폴더 `%APPDATA%\AskBox` 에 저장합니다.
+
+- `%APPDATA%\AskBox\.env` 에 `FACTCHAT_API_KEY` 입력 (처음 실행하면 빈 파일이 생성됩니다)
+- 개발 모드에서 쓰던 문서를 옮기려면 `server/data`, `server/uploads` 폴더를 `%APPDATA%\AskBox` 로 복사
+
+> API Key는 exe 안에 포함하지 않습니다.
 
 ---
 
