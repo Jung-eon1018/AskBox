@@ -3,33 +3,14 @@ import multer from 'multer';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-
-// 업로드한 파일은 server/uploads/, 목록은 server/data/documents.json 에 저장한다.
-const ROOT = path.dirname(import.meta.dirname);
-const UPLOAD_DIR = path.join(ROOT, 'uploads');
-const DB_FILE = path.join(ROOT, 'data', 'documents.json');
+import { UPLOAD_DIR, findDoc, readDocs, writeDocs } from '../services/documents.js';
+import { deleteChat, imagePath, loadChat } from '../services/chats.js';
 
 const TYPES = {
   'application/pdf': { ext: '.pdf', kind: 'pdf' },
   'image/png': { ext: '.png', kind: 'image' },
   'image/jpeg': { ext: '.jpg', kind: 'image' },
 };
-
-await fs.mkdir(UPLOAD_DIR, { recursive: true });
-await fs.mkdir(path.dirname(DB_FILE), { recursive: true });
-
-async function readDocs() {
-  try {
-    return JSON.parse(await fs.readFile(DB_FILE, 'utf8'));
-  } catch (err) {
-    if (err.code === 'ENOENT') return [];
-    throw err;
-  }
-}
-
-async function writeDocs(docs) {
-  await fs.writeFile(DB_FILE, JSON.stringify(docs, null, 2));
-}
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -66,18 +47,41 @@ router.post('/', upload.array('files'), async (req, res) => {
 
 // GET /api/documents/:id/file → 원본 파일
 router.get('/:id/file', async (req, res) => {
-  const doc = (await readDocs()).find((d) => d.id === req.params.id);
+  const doc = await findDoc(req.params.id);
   if (!doc) return res.status(404).json({ error: '문서를 찾을 수 없어요.' });
   res.sendFile(path.join(UPLOAD_DIR, doc.fileName));
 });
 
-// DELETE /api/documents/:id
+// GET /api/documents/:id/chat → 이 문서의 대화 기록
+router.get('/:id/chat', async (req, res) => {
+  const doc = await findDoc(req.params.id);
+  if (!doc) return res.status(404).json({ error: '문서를 찾을 수 없어요.' });
+  const chat = await loadChat(doc.id);
+  res.json(
+    chat.map(({ role, text, image, pageNumber }) => ({
+      role,
+      text,
+      pageNumber,
+      imageUrl: image ? `/api/documents/${doc.id}/chat/images/${image}` : null,
+    })),
+  );
+});
+
+// GET /api/documents/:id/chat/images/:name → 대화에 첨부된 선택 영역 이미지
+router.get('/:id/chat/images/:name', (req, res) => {
+  const file = imagePath(req.params.name);
+  if (!file) return res.status(404).end();
+  res.sendFile(file);
+});
+
+// DELETE /api/documents/:id → 파일과 대화 기록까지 삭제
 router.delete('/:id', async (req, res) => {
   const docs = await readDocs();
   const doc = docs.find((d) => d.id === req.params.id);
   if (!doc) return res.status(404).json({ error: '문서를 찾을 수 없어요.' });
   await writeDocs(docs.filter((d) => d.id !== doc.id));
   await fs.rm(path.join(UPLOAD_DIR, doc.fileName), { force: true });
+  await deleteChat(doc.id);
   res.status(204).end();
 });
 

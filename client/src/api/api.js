@@ -33,13 +33,18 @@ export function documentFileUrl(id) {
   return `/api/documents/${id}/file`;
 }
 
-// ───────── 질문 ─────────
+// ───────── 대화 ─────────
 
-export async function askQuestion({ documentName, pageNumber, image, question, history }) {
+// → { role, text, imageUrl, pageNumber }[]
+export function getChat(documentId) {
+  return request(`/api/documents/${documentId}/chat`);
+}
+
+// 이전 대화와 마지막 선택 이미지는 서버가 저장된 기록에서 붙인다.
+export async function askQuestion({ documentId, pageNumber, image, question }) {
   const form = new FormData();
-  form.append('documentName', documentName);
+  form.append('documentId', documentId);
   form.append('question', question);
-  form.append('history', JSON.stringify(history));
   if (pageNumber) form.append('pageNumber', String(pageNumber));
   if (image) form.append('image', image, 'selection.png');
 
