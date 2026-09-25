@@ -256,8 +256,8 @@ RAG / document retrieval 기능은 구현되어 있지 않습니다.
 ### 1. Clone
 
 ```bash
-git clone https://github.com/Jung-eon1018/ai-workspace.git
-cd ai-workspace
+git clone https://github.com/Jung-eon1018/AskBox.git
+cd AskBox
 ```
 
 ### 2. Install Dependencies
